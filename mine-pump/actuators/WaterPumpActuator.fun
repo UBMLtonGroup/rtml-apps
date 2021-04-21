@@ -1,4 +1,4 @@
-functor WaterPumpActuator (GA : GenericActuator) =
+(*functor WaterPumpActuator (GA : GenericActuator) =
 struct
 
   open GA
@@ -26,4 +26,4 @@ struct
 
 
 
-end
+end*)

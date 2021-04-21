@@ -1,0 +1,9 @@
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/mlton.mlb 
+    Sensor.sml
+    PeriodicMethaneDetectionTask.sml
+    PeriodicWaterLevelDetectionTask.sml
+in 
+    driver.sml
+end

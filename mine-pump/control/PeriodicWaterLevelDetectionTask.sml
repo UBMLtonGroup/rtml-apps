@@ -1,13 +1,29 @@
 structure PeriodicWaterLevelDetectionTask =
 struct
 
-  val run highWaterSensor lowWaterSensor waterPumpActuator  =
+  fun sleepforPeriod start finish p = 
   let
-    val highlevel = highWaterSensor.criticalWaterLevel
-    val lowlevel = lowWaterSensor.criticalWaterLevel
-  in
-    if highlevel then waterPumpActuator.emergencyStop true
-    else if lowlevel then waterPumpActuator.start () else ()  
+    val elapsed = finish - start 
+  in 
+    OS.Process.sleep (Time.fromMilliseconds(p - elapsed))
   end
+
+  fun isCriticalWaterLevel period = 
+  let 
+    val start = Time.toMilliseconds(Time.now())
+    val highSensorReading = Sensor.conductMeasurement "HIGHWATER"
+    val lowSensorReading = Sensor.conductMeasurement "LOWWATER"
+  in 
+    case (highSensorReading,lowSensorReading) of
+     (SOME v, _ ) => (print "High water level : Start motor .. \n";
+                      sleepforPeriod start (Time.toMilliseconds (Time.now())) period;
+                      isCriticalWaterLevel period)
+    | (NONE, SOME v) => (print "Low water level : Stopping motor ..\n";
+                         sleepforPeriod start (Time.toMilliseconds (Time.now())) period;
+                         isCriticalWaterLevel period)
+    | _ => (sleepforPeriod start (Time.toMilliseconds (Time.now())) period;
+              isCriticalWaterLevel period )
+  end
+                
 
 end
