@@ -1,6 +1,6 @@
 structure PeriodicMethaneDetectionTask  =
 struct
- 
+  open MLton.PrimThread
   fun sleepforPeriod start finish p = 
   let
     val elapsed = finish - start 
@@ -15,10 +15,10 @@ struct
   in
     case m of
       SOME v => if  history+v > criticalLevel 
-                then (print "call water pump emergency stop\n"; 
+                then (pspawn (fn () => print "call water pump emergency stop\n", 3); 
                       sleepforPeriod start (Time.toMilliseconds(Time.now())) period;
                       isCriticalMethaneLevelReached 0 criticalLevel period)
-                else ( print "Turn of emergency water pump\n";
+                else (pspawn(fn () => print "Turn of emergency water pump\n",3);
                       sleepforPeriod start (Time.toMilliseconds(Time.now())) period;
                       isCriticalMethaneLevelReached (history+v) criticalLevel period)
     | NONE => (sleepforPeriod start (Time.toMilliseconds(Time.now())) period;

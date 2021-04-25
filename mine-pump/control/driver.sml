@@ -11,5 +11,5 @@ local
   open MLton.PrimThread
 in
   val _ = pspawn(fn () => Mtask.isCriticalMethaneLevelReached 0 3 56, 2)
-  val _ = pspawn(fn () => Wtask.isCriticalWaterLevel 40, 3)
+  val _ = pspawn(fn () => Wtask.isCriticalWaterLevel 40, 5)
 end

@@ -1,5 +1,6 @@
 structure PeriodicWaterLevelDetectionTask =
 struct
+  open MLton.PrimThread
 
   fun sleepforPeriod start finish p = 
   let
@@ -15,10 +16,12 @@ struct
     val lowSensorReading = Sensor.conductMeasurement "LOWWATER"
   in 
     case (highSensorReading,lowSensorReading) of
-     (SOME v, _ ) => (print "High water level : Start motor .. \n";
+     (SOME v, _ ) => (pspawn(fn ()=> WaterPumpActuator.start (), 3);
+                      (*print "High water level : Start motor .. \n";*)
                       sleepforPeriod start (Time.toMilliseconds (Time.now())) period;
                       isCriticalWaterLevel period)
-    | (NONE, SOME v) => (print "Low water level : Stopping motor ..\n";
+    | (NONE, SOME v) => (pspawn(fn () => WaterPumpActuator.stop (), 4);
+                         (*print "Low water level : Stopping motor ..\n";*)
                          sleepforPeriod start (Time.toMilliseconds (Time.now())) period;
                          isCriticalWaterLevel period)
     | _ => (sleepforPeriod start (Time.toMilliseconds (Time.now())) period;

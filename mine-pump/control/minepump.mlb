@@ -1,7 +1,9 @@
 local
     $(SML_LIB)/basis/basis.mlb
     $(SML_LIB)/basis/mlton.mlb 
-    Sensor.sml
+   (* $(SML_LIB)/cml/cml.mlb*)
+    ../actuators/WaterPumpActuator.sml
+    ../sensors/Sensor.sml
     PeriodicMethaneDetectionTask.sml
     PeriodicWaterLevelDetectionTask.sml
 in 
