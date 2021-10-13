@@ -1,3 +1,5 @@
+pacemaker/pacemaker
+pacemaker/tests
 .idea
 /build/
 /install/

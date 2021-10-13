@@ -1,0 +1,14 @@
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/mlton.mlb 
+    sml-fft/fft.sig
+    sml-fft/fft.sml
+    sml-fft/fft-real.sig
+    sml-fft/fft-real.sml
+    EcgParam.sml
+    EcgCalc.sml
+in 
+    test_ecgcalc_ran1.sml
+    test_ecgcalc_stdev.sml
+    test_ecgcalc_fft.sml
+end
