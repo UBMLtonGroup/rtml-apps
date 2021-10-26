@@ -1,3 +1,10 @@
+## SML Pacemaker
+
+eg
+
+ `mlton -const 'Exn.keepHistory true' tests.mlb`
+
+ `./tests`
 
 
 ## Refs
