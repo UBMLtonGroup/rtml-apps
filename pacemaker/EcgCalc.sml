@@ -22,7 +22,6 @@ struct
       fun sumListRec [] : real  = 0.0
          | sumListRec (x::xs) = x + (sumListRec xs)
 
-
       val sumOfList = sumListRec x
 
       fun len(xs) : real = case xs of
@@ -36,7 +35,13 @@ struct
             [] => total
          | (x::xs') => diff (xs', (total+((x - mean) * (x - mean))), mean)
 
+      val _ = print ("Sum:   "^Real.toString(sumOfList)^"\n")
+      val _ = print ("Len:   "^Real.toString(lenOfList)^"\n")
+      val _ = print ("Mean:  "^Real.toString(mean)^"\n")
+      
       val total = diff (x, 0.0, mean)
+
+      val _ = print ("Total: "^Real.toString(total)^"\n")
    in
       Math.sqrt (total / (n-1.0))
    end
@@ -57,6 +62,10 @@ struct
                ), mean)
       
       val total = diff (x, 0, 0.0, mean)
+      val _ = print ("Sum:   "^Real.toString(sumOfList)^"\n")
+      val _ = print ("Len:   "^Int.toString(lenOfList)^"\n")
+      val _ = print ("Mean:  "^Real.toString(mean)^"\n")
+      val _ = print ("Total: "^Real.toString(total)^"\n")
    in
       Math.sqrt (total / (n-1.0))
    end
@@ -244,8 +253,8 @@ struct
       ()
    end
 
-
-   local
+   fun dorun () = let
+   
       val NR_END = 1.0
       val IA = 16807.0
       val IM = 2147483647.0
@@ -405,7 +414,6 @@ struct
          i := !j + 1
       )
       val Nt = !j
-
 
       (*     private void derivspqrst(double t0,double[] x, double[] dxdt){ *)
       fun derivspqrst (t0 : real, x: real array, dxdt: real array) =
@@ -916,20 +924,36 @@ struct
          update(ecgResultTime, !i, (Real.fromInt(!i-1))*tstep);
          update(ecgResultVoltage, !i, sub(zts, !i));
          update(ecgResultPeak, !i, Real.fromInt(Real.trunc(sub(ipeak, !i))));
+    (*
+         if Real.isNan(sub(ecgResultVoltage, !i)) then () else (
          printr (sub(ecgResultTime, !i)); print "\t";
          printr (sub(ecgResultVoltage, !i)); print "\t";
-         printr (sub(ecgResultPeak, !i)); print "\n";
+         printr (sub(ecgResultPeak, !i)); print "\n");
+    *)
          i := !i + 1
       )
 
-   in
-      fun dorun () = 
+      fun printvals () =
       let
+         val i = ref 0
       in
-         print ("Q: "^(Int.toString q)^"\n")
+         while (!i) < Nts do (
+            if Real.isNan(sub(ecgResultVoltage, !i)) then () else (
+               printr (sub(ecgResultTime, !i)); print "\t";
+               printr (sub(ecgResultVoltage, !i)); print "\t";
+               printr (sub(ecgResultPeak, !i)); print "\n"
+            );
+            i := !i + 1
+         )
       end
 
-      val _ = dorun ()
+   in (*
+      fun dorun () = 
+      let
+      in *)
+         print ("Q: "^(Int.toString q)^"\n");
+         printvals ()
+      (* end *)
    end
 
 end
