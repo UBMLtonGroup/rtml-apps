@@ -35,13 +35,14 @@ struct
             [] => total
          | (x::xs') => diff (xs', (total+((x - mean) * (x - mean))), mean)
 
+      val total = diff (x, 0.0, mean)
+
+      (*
       val _ = print ("Sum:   "^Real.toString(sumOfList)^"\n")
       val _ = print ("Len:   "^Real.toString(lenOfList)^"\n")
       val _ = print ("Mean:  "^Real.toString(mean)^"\n")
-      
-      val total = diff (x, 0.0, mean)
-
       val _ = print ("Total: "^Real.toString(total)^"\n")
+      *)
    in
       Math.sqrt (total / (n-1.0))
    end
@@ -62,10 +63,12 @@ struct
                ), mean)
       
       val total = diff (x, 0, 0.0, mean)
+      (*
       val _ = print ("Sum:   "^Real.toString(sumOfList)^"\n")
       val _ = print ("Len:   "^Int.toString(lenOfList)^"\n")
       val _ = print ("Mean:  "^Real.toString(mean)^"\n")
       val _ = print ("Total: "^Real.toString(total)^"\n")
+      *)
    in
       Math.sqrt (total / (n-1.0))
    end
