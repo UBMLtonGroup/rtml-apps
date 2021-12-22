@@ -1,0 +1,13 @@
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/mlton.mlb 
+    sml-fft/fft.sig
+    sml-fft/fft.sml
+    sml-fft/fft-real.sig
+    sml-fft/fft-real.sml
+    EcgParam.sml
+    EcgCalc-threaded.sml
+    ActuatorA.sml
+in 
+    driver-threaded.sml
+end
