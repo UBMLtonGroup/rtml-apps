@@ -1,6 +1,7 @@
 structure EcgCalc = 
 struct
    open Array Math List
+   open MLton.PrimThread
 
    val PI = 3.14159265358979323846
 
@@ -257,7 +258,6 @@ struct
    end
 
    fun dorun () = let
-   
       val NR_END = 1.0
       val IA = 16807.0
       val IM = 2147483647.0
@@ -605,6 +605,7 @@ struct
             timev += h;
         }
         *)
+
       val xt = array(Nt, 0.0)
       val yt = array(Nt, 0.0)
       val zt = array(Nt, 0.0)
@@ -853,7 +854,6 @@ struct
       *)
       val ipeak = array(Nts, 0.0)
       val _ = detectpeaks(ipeak, xts, yts, zts, Nts)
-
       (*
         /* scale signal to lie between -0.4 and 1.2 mV */
         zmin = zts[1];
@@ -923,7 +923,9 @@ struct
       val ecgResultVoltage = array(ecgResultNumRows, 0.0)
       val ecgResultPeak = array(ecgResultNumRows, 0.0)
       val i = ref 0 
-      val _ = while (!i) < Nts do (
+      val waveform_lock = 0
+
+      val _ = while (!i) < Nts do ( rtlock waveform_lock;
          update(ecgResultTime, !i, (Real.fromInt(!i-1))*tstep);
          update(ecgResultVoltage, !i, sub(zts, !i));
          update(ecgResultPeak, !i, Real.fromInt(Real.trunc(sub(ipeak, !i))));
@@ -933,7 +935,8 @@ struct
          printr (sub(ecgResultVoltage, !i)); print "\t";
          printr (sub(ecgResultPeak, !i)); print "\n");
     *)
-         i := !i + 1
+         i := !i + 1;
+         rtunlock waveform_lock
       )
 
       fun printvals () =
@@ -947,16 +950,17 @@ struct
                printr (sub(ecgResultPeak, !i)); print "\n"
             );
             i := !i + 1
-         )
+         ); !i
       end
 
    in (*
       fun dorun () = 
       let
-      in *)
-         print ("Q: "^(Int.toString q)^"\n");
-         printvals ()
-      (* end *)
+      in 
+         print ("Q: "^(Int.toString q)^"\n");*)
+         print (Int.toString(getMyPriority ())^"] ECG frame generated. "^Int.toString(ecgResultNumRows)^"\n")
+         (*;print (Int.toString(printvals ()))
+      end *)
    end
 
 end
