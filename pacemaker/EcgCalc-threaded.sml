@@ -257,7 +257,7 @@ struct
       ()
    end
 
-   fun dorun () = let
+   fun dorun (locknum, pos, buffer) = let
       val NR_END = 1.0
       val IA = 16807.0
       val IM = 2147483647.0
@@ -896,8 +896,12 @@ struct
 
       val i = ref 0
       val _ = while (!i) <= Nts do (
+         rtlock locknum;
          update(zts, !i, (sub(zts, !i) + (EcgParam.getANoise())*(2.0*(ran1()) - 1.0)));
-         i := !i + 1
+         pos := !i;
+         update(buffer, !i, sub(zts, !i));
+         i := !i + 1;
+         rtunlock locknum
       )
 
       (*
@@ -923,21 +927,24 @@ struct
       val ecgResultVoltage = array(ecgResultNumRows, 0.0)
       val ecgResultPeak = array(ecgResultNumRows, 0.0)
       val i = ref 0 
-      val waveform_lock = 0
 
-      val _ = while (!i) < Nts do ( rtlock waveform_lock;
+    (*
+
+      val _ = while (!i) < Nts do ( 
+         rtlock locknum;
          update(ecgResultTime, !i, (Real.fromInt(!i-1))*tstep);
          update(ecgResultVoltage, !i, sub(zts, !i));
          update(ecgResultPeak, !i, Real.fromInt(Real.trunc(sub(ipeak, !i))));
-    (*
          if Real.isNan(sub(ecgResultVoltage, !i)) then () else (
          printr (sub(ecgResultTime, !i)); print "\t";
          printr (sub(ecgResultVoltage, !i)); print "\t";
          printr (sub(ecgResultPeak, !i)); print "\n");
-    *)
+         pos := !i;
+         update(buffer, !i, sub(zts, !i));
          i := !i + 1;
-         rtunlock waveform_lock
+         rtunlock locknum
       )
+    *)
 
       fun printvals () =
       let

@@ -8,6 +8,7 @@ local
     EcgParam.sml
     EcgCalc-threaded.sml
     ActuatorA.sml
+    ActuatorV.sml
 in 
     driver-threaded.sml
 end

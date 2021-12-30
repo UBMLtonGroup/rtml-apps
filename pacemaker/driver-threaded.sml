@@ -1,117 +1,111 @@
 structure EcgCalc = EcgCalc
 
+
 open MLton.PrimThread
-open MLton.Thread
 
 fun printit s = print (Int.toString(getMyPriority ())^"] "^s^"\n")
-
-structure Queue:
-   sig
-      type 'a t
-
-      val new: unit -> 'a t
-      val enque: 'a t * 'a -> unit
-      val deque: 'a t -> 'a option
-   end =
-   struct
-      datatype 'a t = T of {front: 'a list ref, back: 'a list ref}
-
-      fun new () = T {front = ref [], back = ref []}
-
-      fun enque (T {back, ...}, x) = back := x :: !back
-
-      fun deque (T {front, back}) =
-         case !front of
-            [] => (case !back of
-                      [] => NONE
-                    | l => let val l = rev l
-                           in case l of
-                              [] => raise Fail "deque"
-                            | x :: l => (back := []; front := l; SOME x)
-                           end)
-          | x :: l => (front := l; SOME x)
-   end
-
-structure Thread:
-   sig
-      val exit: unit -> 'a
-      val run: unit -> unit
-      val spawn: (unit -> unit) -> unit
-      val yield: unit -> unit
-   end =
-   struct
-      open MLton
-      open Thread
-
-      val topLevel: Thread.Runnable.t option ref = ref NONE
-
-      local
-         val threads: Thread.Runnable.t Queue.t = Queue.new ()
-      in
-         fun ready (t: Thread.Runnable.t) : unit =
-            Queue.enque(threads, t)
-         fun next () : Thread.Runnable.t =
-            case Queue.deque threads of
-               NONE => valOf (!topLevel)
-             | SOME t => t
-      end
-
-            fun 'a exit (): 'a = switch (fn _ => next ())
-
-      fun new (f: unit -> unit): Thread.Runnable.t =
-         Thread.prepare
-         (Thread.new (fn () => ((f () handle _ => exit ())
-                                ; exit ())),
-          ())
-
-      fun schedule t = (ready t; next ())
-
-      fun yield (): unit = switch (fn t => schedule (Thread.prepare (t, ())))
-
-      val spawn = ready o new
-
-      fun run(): unit =
-         (switch (fn t =>
-                  (topLevel := SOME (Thread.prepare (t, ()))
-                   ; next()))
-          ; topLevel := NONE)
-   end
-
-fun forever1 () = while true do ( printit "Ecg: create wave form"; EcgCalc.dorun (); printit "Ecg: do it again" )
-fun forever2 () = while true do ( printit "Hi!" )
 fun gettime () = get_ticks_since_boot ()
 
-local
+val pos = ref 0;
+val curposA = ref 0;
+val curposV = ref 0;
+val locknum = 0;
+val Activity_A_Occurred = ref false;
+val Activity_V_Occurred = ref false;
+val lastAtriumActivityTime = ref 0;
+val lastVentricleActivityTime = ref 0;
+val buffer = Array.array (128000, 0.0);
 
 
-in
-   val s = gettime();
-   val _ = EcgCalc.dorun ();
-   val d = (gettime ()) - s;
-   val _ = printit (Int.toString(d) ^ " ms");
 
-   val s = gettime();
-   val _ = printit "time";
-   val _ = EcgCalc.dorun ();
-   val d = (gettime ()) - s;
-   val _ = printit (Int.toString(d) ^ " ms");
 
-   val s = gettime();
-   val _ = EcgCalc.dorun ();
-   val d = (gettime ()) - s;
-   val _ = printit (Int.toString(d) ^ " ms");
+fun thread0 (ln, pos, buf) = let in
+   while true do ( 
+      printit "Ecg: create wave form"; 
+      EcgCalc.dorun (ln, pos, buf); 
+      printit "Ecg: do it again" 
+   ) end
 
+fun thread2 (ln, pos, buf, lastVentricleActivityTime, Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) = let in
+   while true do (
+      Posix.Process.sleep (Time.fromMilliseconds 100);
+      rtlock ln;
+      ActuatorA.handler_read_sensor_a (lastVentricleActivityTime, 
+                     Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred);
+      rtunlock ln
+   ) end
+
+
+fun thread3 (ln, pos, buf, lastVentricleActivityTime, Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) = let in
+   while true do (
+      Posix.Process.sleep (Time.fromMilliseconds 100);
+      rtlock ln;
+      ActuatorV.handler_read_sensor_v (lastVentricleActivityTime, 
+               Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred);
+      rtunlock ln
+   ) end
+
+
+fun thread4 (ln, pos, buf, lastVentricleActivityTime, Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) = let in
+   while true do (
+      Posix.Process.sleep (Time.fromSeconds 1);
+      rtlock ln;
+      ActuatorA.handler_pace_a (lastVentricleActivityTime, 
+               Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred);
+      rtunlock ln
+   ) end
+
+
+fun thread5 (ln, pos, buf, lastVentricleActivityTime, Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) = let in
+   while true do (
+      Posix.Process.sleep (Time.fromSeconds 1);
+      rtlock ln;
+      ActuatorV.handler_pace_v (lastVentricleActivityTime, 
+               Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred);
+      rtunlock ln
+   ) end
+
+
+
+
+
+val _ = printit "create thread 2: read sensor a";
 (*
-  val _ = print (Int.toString(getMyPriority ())^"] "^Real.toString(EcgCalc.ran1 ())^"\n");
-  val f = let in print (Int.toString(getMyPriority ())^"] "^Real.toString(EcgCalc.ran1 ())^"\n") end
-  val _ = pspawn (fn () => print (Int.toString(getMyPriority ())^"] Called from user program!\n"), 3)
-  val _ = pspawn (fn () => let in print "Hi!\n" end, 2)
-  val _ = print "Hello World\n";
+val _ = ActuatorA.handler_read_sensor_a (lastVentricleActivityTime, 
+                     Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred)
+*)
 
-  val _ = pspawn (fn () => forever1 (), 4);
-  *)
+val _ = pspawn (
+   fn () => let in 
+            thread2 (locknum, pos, buffer, lastVentricleActivityTime, 
+                     Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) 
+            end, 2)
 
-  val _ = forever1 ();
-  val _ = Thread.run ()
-  val _ = printit "Main end\n"
-end
+val _ = printit "create thread 3: read sensor v";
+
+val _ = pspawn (
+   fn () => let in 
+            thread3 (locknum, pos, buffer, lastVentricleActivityTime, 
+                     Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) 
+            end, 3)
+
+val _ = printit "create thread 4: pace a";
+
+val _ = pspawn (
+   fn () => let in 
+            thread4 (locknum, pos, buffer, lastVentricleActivityTime, 
+                     Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) 
+            end, 4)
+
+val _ = printit "create thread 5: pace v";
+
+val _ = pspawn (
+   fn () => let in 
+            thread5 (locknum, pos, buffer, lastVentricleActivityTime, 
+                     Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) 
+            end, 5)
+
+
+val _ = printit "thread 0: Main loop (waveform generator)"
+val _ = thread0 (locknum, pos, buffer);
+val _ = printit "Main end (should not happen)"
