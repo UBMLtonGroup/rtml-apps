@@ -6,6 +6,8 @@ struct
     fun Pace_ON_V () = printit "Pace ON V"
     fun Pace_OFF_V () = printit "Pace OFF V"
     fun gettime () = get_ticks_since_boot ()
+    fun mstosec x = Time.toReal(Time.fromMilliseconds(IntInf.fromInt(x)));
+
 (*
     val Activity_A_Occurred = ref false
     val Activity_V_Occurred = ref false
@@ -17,14 +19,14 @@ struct
     val lastVActivity_lock = 3
     val lastAActivity_lock = 4
 
-    val reactionTime = 30000
-    val recoveryTime = 300000
-    val Slop = 8
-    val PVARP = 270
-    val MSR = 500
-    val PaceInterval = 1000
-    val AVI = 150
-    val PacingLength = 2
+    val reactionTime = mstosec(30000)
+    val recoveryTime = mstosec(300000)
+    val Slop = mstosec(8)
+    val PVARP = mstosec(270)
+    val MSR = mstosec(500)
+    val PaceInterval = mstosec(1000)
+    val AVI = mstosec(150)
+    val PacingLength = mstosec(2)
 
     (* DDDR_Handler_Pace_V.java 
        Aperiodic. High priority.
@@ -37,7 +39,7 @@ struct
     in
         if interval >= (PVARP+AVI) then (
             Pace_ON_V ();
-            Posix.Process.sleep (Time.fromMilliseconds PacingLength);
+            Posix.Process.sleep (Time.fromReal PacingLength);
             Pace_OFF_V ();
             rtlock attActivityOccurred_lock;
             Activity_A_Occurred := false;
@@ -55,9 +57,9 @@ struct
 
     fun handler_read_sensor_v (lastVentricleActivityTime, Activity_V_Occurred, lastAtriumActivityTime, Activity_A_Occurred) = 
     let
-        val interval = ref 0
+        val interval = ref 0.0
     in
-        interval := (get_ticks_since_boot()) - !lastAtriumActivityTime;
+        interval := Real.-(get_ticks_since_boot(), !lastAtriumActivityTime);
         (*printit ("read sensor v. interval="^Int.toString(!interval));*)
 
         if !interval <= AVI andalso !Activity_V_Occurred = false then (
