@@ -59,7 +59,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
 
-   val _ = set_schedule (onemill, onesec, deadline) (* runtime, period, deadline *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -82,7 +82,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
    
-   val _ = set_schedule (onemill, onesec, deadline) (* runtime, period, deadline *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -105,7 +105,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
 
-   val _ = set_schedule (onemill, onesec, deadline) (* runtime, period, deadline *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -131,7 +131,7 @@ let
 (*  The kernel requires that:
            sched_runtime <= sched_deadline <= sched_period *)
 
-   val _ = set_schedule (onemill, onesec, deadline) (* runtime, period, deadline *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
 in
    while true do (
       rtlock ln;
