@@ -3,7 +3,8 @@ structure EcgCalc = EcgCalc
 
 open MLton.PrimThread
 
-fun printit s = print (Int.toString(getMyPriority ())^"] "^s^"\n")
+fun printit s = ()
+fun printit2 s = print (Int.toString(getMyPriority ())^"] "^s^"\n")
 fun gettime () = get_ticks_since_boot ()
 
 val pos = ref 0;
@@ -16,10 +17,13 @@ val lastAtriumActivityTime = ref 0.0;
 val lastVentricleActivityTime = ref 0.0;
 val buffer = Array.array (128000, 0.0);
 
-val onesec     = 1000 (* mills *)
-val eightmills =    88
-val onemill    =    1 
-val deadline   = eightmills
+val onesec     =  1000 * 1000 (* micros *)
+val eightmills =     8 * 1000
+val onemill    =     1 * 1000
+val onemicro   =     1
+val runtime    = 450
+val deadline   = 4000
+val period     = 8000
 
 fun checkDeadline (cur : real, dl : int) = 
    if (cur > (Real.fromInt(dl)/1000.0)) then
@@ -33,6 +37,7 @@ fun thread0 (ln, pos, buf) =
 let 
    val prev = ref (gettime ())
    val cur = ref (gettime ())
+   val rc = ref 0
 in
    while true do ( 
       printit "Ecg: create wave form"; 
@@ -43,13 +48,15 @@ in
       prev := gettime();
       printit ("Ecg: runtime "^Real.toString(Real.-(!prev, !cur)));
       printit "Ecg: do it again"; 
-(*
-      dump_instrument_stderr 0;
-      dump_instrument_stderr 2;
-      dump_instrument_stderr 3;
-      dump_instrument_stderr 4;
-      dump_instrument_stderr 5;
-*)
+      rc := !rc + 1;
+      if (!rc > 5) then (
+         dump_instrument_stderr 0;
+         dump_instrument_stderr 1;
+         dump_instrument_stderr 2;
+         dump_instrument_stderr 3;
+         dump_instrument_stderr 4;
+         dump_instrument_stderr 5
+      ) else ();
       ()
    )
 end
@@ -58,8 +65,8 @@ fun thread2 (ln, pos, buf, lastVentricleActivityTime, Activity_V_Occurred, lastA
 let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
-
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
+   (* reminder: sched_runtime <= sched_deadline <= sched_period  *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopacks *)
 in
    while true do (
       rtlock ln;
@@ -72,7 +79,7 @@ in
       rtunlock ln;
       printit ("handler_read_sensor_a: runtime "^Real.toString(Real.-(!prev, !cur)));
       checkDeadline (Real.-(!cur, !prev), deadline);
-      wait_for_next_period () (* after computation finishes, this must be called *)
+      wait_for_next_period false (* after computation finishes, this must be called *)
    )
 end
 
@@ -82,7 +89,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
    
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -95,7 +102,7 @@ in
       rtunlock ln;
       printit ("handler_read_sensor_v: runtime "^Real.toString(Real.-(!prev, !cur)));
       checkDeadline (Real.-(!cur, !prev), deadline);
-      wait_for_next_period () (* after computation finishes, this must be called *)
+      wait_for_next_period false (* after computation finishes, this must be called *)
    ) 
 end
 
@@ -105,7 +112,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
 
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -118,7 +125,7 @@ in
       rtunlock ln;
       printit ("handler_pace_a: runtime "^Real.toString(Real.-(!prev, !cur)));
       checkDeadline (Real.-(!cur, !prev), deadline);
-      wait_for_next_period () (* after computation finishes, this must be called *)
+      wait_for_next_period false (* after computation finishes, this must be called *)
    )
 end
 
@@ -131,7 +138,7 @@ let
 (*  The kernel requires that:
            sched_runtime <= sched_deadline <= sched_period *)
 
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, period, deadline, allowedtopack *)
+   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -144,7 +151,7 @@ in
       rtunlock ln;
       printit ("handler_pace_v: runtime "^Real.toString(Real.-(!prev, !cur)));
       checkDeadline (Real.-(!cur, !prev), deadline);
-      wait_for_next_period () (* after computation finishes, this must be called *)
+      wait_for_next_period false (* after computation finishes, this must be called *)
    )
 end
 

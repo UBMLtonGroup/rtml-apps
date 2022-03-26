@@ -1,4 +1,4 @@
-RTML=/media/sf_cse/CSE/B/RTMLton/build/bin/mlton
+RTML=/home/jcmurphy/RTMLton/build/bin/mlton
 
 run-stage0:
 	./pacemaker-threaded @MLton rtthreads true --

@@ -64,7 +64,7 @@ struct
 
         if !interval > PVARP andalso !interval < Real.-(PaceInterval,AVI) andalso !Activity_A_Occurred = false then (
             printit "sensor A check 1";
-            if (EcgCalc.ran1 ()) >= 0.3 then (
+            if Real.>=(EcgCalc.ran1 (), 0.3) then (
                 printit "Intrinsic activity sensed in A";
                 rtlock attActivityOccurred_lock;
                 lastAtriumActivityTime := get_ticks_since_boot ();

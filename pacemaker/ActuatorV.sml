@@ -65,7 +65,7 @@ struct
         if !interval <= AVI andalso !Activity_V_Occurred = false then (
             printit "sensor V check 1";
 
-            if EcgCalc.ran1 () >= 0.9 then (
+            if Real.>=(EcgCalc.ran1 (), 0.9) then (
                 printit "Intrinsic activity sensed in V";
                 rtlock attActivityOccurred_lock;
                 lastVentricleActivityTime := get_ticks_since_boot ();
