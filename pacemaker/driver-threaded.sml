@@ -21,15 +21,22 @@ val onesec     =  1000 * 1000 (* micros *)
 val eightmills =     8 * 1000
 val onemill    =     1 * 1000
 val onemicro   =     1
-val runtime    = 450
-val deadline   = 4000
-val period     = 8000
+(* if you are in RTEMS, these settings depend on 
+ * the configured clock frequency:
+ * CONFIGURE_MICROSECONDS_PER_TICK
+ *)
+val runtime    = 1000 (* 1 ms *)
+val deadline   = 4000 (* 4 ms *)
+val period     = 8000 (* 8 ms *)
 
 fun checkDeadline (cur : real, dl : int) = 
-   if (cur > (Real.fromInt(dl)/1000.0)) then
-      printit "DEADLINE MISSED"
-   else ();
-
+   let
+      val dl_in_secs = Real./(Real.fromInt(dl), 1000.0)
+   in
+      if (Real.>(cur, dl_in_secs)) then
+         printit "DEADLINE MISSED"
+      else ();
+   end
 
 (* wavegen period 13000-14000 ms *)
 
@@ -47,6 +54,7 @@ in
       instrument 0;
       prev := gettime();
       printit ("Ecg: runtime "^Real.toString(Real.-(!prev, !cur)));
+      schedule_yield false;
       printit "Ecg: do it again"; 
       rc := !rc + 1;
       if (!rc > 5) then (
@@ -66,7 +74,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
    (* reminder: sched_runtime <= sched_deadline <= sched_period  *)
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopacks *)
+   val _ = set_schedule (runtime, deadline, period, 2) (* runtime, deadline, period, allowedtopacks *)
 in
    while true do (
       rtlock ln;
@@ -89,7 +97,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
    
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopack *)
+   val _ = set_schedule (runtime, deadline, period, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -112,7 +120,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
 
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopack *)
+   val _ = set_schedule (runtime, deadline, period, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       rtlock ln;
@@ -138,7 +146,7 @@ let
 (*  The kernel requires that:
            sched_runtime <= sched_deadline <= sched_period *)
 
-   val _ = set_schedule (onemill, deadline, onesec, 2) (* runtime, deadline, period, allowedtopack *)
+   val _ = set_schedule (runtime, deadline, period, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       rtlock ln;
