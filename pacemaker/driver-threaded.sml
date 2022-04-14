@@ -57,10 +57,10 @@ in
       EcgCalc.dorun (ln, pos, buf); 
       instrument 1;
       prev := gettime();
-      printit ("Ecg: runtime "^Real.toString(Real.-(!prev, !cur)));
+      printit2 ("Ecg: runtime "^Real.toString(Real.-(!prev, !cur)));
       schedule_yield false;
-      printit "Ecg: do it again"; 
       rc := !rc + 1;
+      printit2 ("Ecg: do it again: "^Int.toString(!rc)); 
       if (!rc > 5) then (
          dump_instrument_stderr 0;
          dump_instrument_stderr 1;

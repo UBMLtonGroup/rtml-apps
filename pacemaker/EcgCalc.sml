@@ -1,6 +1,7 @@
 structure EcgCalc = 
 struct
    open Array Math List
+   open MLton.PrimThread
 
    val PI = 3.14159265358979323846
 
@@ -383,6 +384,8 @@ struct
                Nrr
             )
       
+      schedule_yield false;
+
         (*
         /* create piecewise constant rr */
         rrpc = new double[(2*Nrr) + 1];
@@ -416,6 +419,8 @@ struct
          i := !j + 1
       )
       val Nt = !j
+
+      schedule_yield false;
 
       (*     private void derivspqrst(double t0,double[] x, double[] dxdt){ *)
       fun derivspqrst (t0 : real, x: real array, dxdt: real array) =
@@ -475,6 +480,8 @@ struct
             i := !i + 1
          )
 
+         schedule_yield false;
+
          (*
             zbase = 0.005* Math.sin(2.0*PI*paramOb.getFHi()*t0);
             *)
@@ -490,6 +497,8 @@ struct
          val _ = update(dxdt, 0, a0 * (sub(x, 0)-x0) - w0*(sub(x, 1)-y0))
          val _ = update(dxdt, 1, a0 * (sub(x, 1)-y0) + w0*(sub(x, 0)-x0))
          val _ = update(dxdt, 2, 0.0)
+
+         schedule_yield false;
 
          (*
             for(i=1; i<=k; i++){
@@ -546,6 +555,7 @@ struct
             update(yt, !i, sub(y, !i) + hh * sub(dydx, !i));
             i := !i + 1
          )
+      schedule_yield false;
 
          (* 
          derivspqrst(xh,yt,dyt);
@@ -558,6 +568,7 @@ struct
             update(yt, !i, sub(y, !i) + hh * sub(dyt, !i));
             i := !i + 1
          )
+      schedule_yield false;
 
          (*
          derivspqrst(xh,yt,dym);
@@ -573,6 +584,7 @@ struct
             update(dym, !i, sub(dym, !i) + sub(dyt, !i));
             i := !i + 1
          )
+      schedule_yield false;
 
          (*
          derivspqrst(x+h,yt,dyt);
@@ -756,6 +768,8 @@ struct
             i := !i + 1
          )
 
+      schedule_yield false;
+
          (*
 
             /* correct the peaks */
@@ -846,6 +860,9 @@ struct
          ()
       end
 
+      schedule_yield false;
+
+
       (* 
         /* do peak detection using angle */
         ipeak = new double[Nts + 1];
@@ -853,6 +870,9 @@ struct
       *)
       val ipeak = array(Nts, 0.0)
       val _ = detectpeaks(ipeak, xts, yts, zts, Nts)
+
+      schedule_yield false;
+
       (*
         /* scale signal to lie between -0.4 and 1.2 mV */
         zmin = zts[1];
@@ -885,6 +905,9 @@ struct
          update(zts, !i, (sub(zts, !i)-(!zmin))*(1.6)/zrange - 0.4);
          i := !i + 1
       )
+
+      schedule_yield false;
+
 
       (*
         /* include additive uniformly distributed measurement noise */
