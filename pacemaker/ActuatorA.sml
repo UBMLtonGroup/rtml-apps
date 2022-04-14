@@ -2,7 +2,8 @@ structure ActuatorA =
 struct
     open MLton.PrimThread
 
-    fun printit s = print (Int.toString(getMyPriority ())^"] "^s^"\n")
+    fun printit s = ()
+    fun printit2 s = print (Int.toString(getMyPriority ())^"] "^s^"\n")
     fun Pace_ON_A () = printit "Pace ON A"
     fun Pace_OFF_A () = printit "Pace OFF A"
     fun gettime () = get_ticks_since_boot ()
@@ -60,25 +61,30 @@ struct
         val interval = ref 0.0
     in
         interval := Real.-(get_ticks_since_boot(), !lastVentricleActivityTime);
-        (*printit ("read sensor a. interval="^Int.toString(!interval));*)
+        (*printit ("read sensor a. interval="^Real.toString(!interval));*)
 
         if !interval > PVARP andalso !interval < Real.-(PaceInterval,AVI) andalso !Activity_A_Occurred = false then (
             printit "sensor A check 1";
             if Real.>=(EcgCalc.ran1 (), 0.3) then (
                 printit "Intrinsic activity sensed in A";
                 rtlock attActivityOccurred_lock;
+                printit "Intrinsic A after lock";
                 lastAtriumActivityTime := get_ticks_since_boot ();
                 Activity_A_Occurred := true;
                 Activity_V_Occurred := false;
                 rtunlock attActivityOccurred_lock;
+                printit "Intrinsic A after unlock";
                 ()
             ) else ()
         ) else if !interval >= Real.-(PaceInterval,AVI) andalso !Activity_A_Occurred = false then (
                 printit "sensor A check 2";
 
                 rtlock attActivityOccurred_lock;
+                printit "sensor A check 2 after lock";
                 Activity_A_Occurred := true;
                 rtunlock attActivityOccurred_lock;
+                printit "sensor A check 2 after unlock";
+
                 ()
             ) 
         else ()

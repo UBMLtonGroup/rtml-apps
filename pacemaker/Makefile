@@ -20,3 +20,9 @@ tests-rtmlton:
 
 mlton:
 	mlton -const 'Exn.keepHistory true' tests.mlb
+
+collect:
+	LOWER=40 UPPER=200 sudo ./pacemaker-threaded @MLton hpercent .7 rtthreads true max-heap 256M packingstage1 false packingstage2 false -- 2> run10-256m-pack0.txt
+	LOWER=40 UPPER=200 sudo ./pacemaker-threaded @MLton hpercent .7 rtthreads true max-heap 256M packingstage1 true packingstage2 false -- 2> run10-256m-pack1.txt
+	LOWER=40 UPPER=200 sudo ./pacemaker-threaded @MLton hpercent .7 rtthreads true max-heap 256M packingstage1 true packingstage2 true -- 2> run10-256m-pack2.txt
+

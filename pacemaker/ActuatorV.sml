@@ -2,7 +2,8 @@ structure ActuatorV =
 struct
     open MLton.PrimThread
 
-    fun printit s = print (Int.toString(getMyPriority ())^"] "^s^"\n")
+    fun printit s = ()
+    fun printit2 s = print (Int.toString(getMyPriority ())^"] "^s^"\n")
     fun Pace_ON_V () = printit "Pace ON V"
     fun Pace_OFF_V () = printit "Pace OFF V"
     fun gettime () = get_ticks_since_boot ()
@@ -42,9 +43,11 @@ struct
             Posix.Process.sleep (Time.fromReal PacingLength);
             Pace_OFF_V ();
             rtlock attActivityOccurred_lock;
+            printit "handler V after lock";
             Activity_A_Occurred := false;
             lastVentricleActivityTime := get_ticks_since_boot ();
             rtunlock attActivityOccurred_lock;
+            printit "handler V after unlock";
             ()
         )
         else ()
@@ -68,19 +71,23 @@ struct
             if Real.>=(EcgCalc.ran1 (), 0.9) then (
                 printit "Intrinsic activity sensed in V";
                 rtlock attActivityOccurred_lock;
+                printit "Intrinsic V after lock";
                 lastVentricleActivityTime := get_ticks_since_boot ();
                 Activity_V_Occurred := true;
                 Activity_A_Occurred := false;
                 (* mode change? *)
                 rtunlock attActivityOccurred_lock;
+                printit "Intrinsic V after unlock";
                 ()
             ) else ()
         ) else if !interval > AVI andalso !Activity_V_Occurred = false then (
                 printit "sensor V check 2";
                 rtlock attActivityOccurred_lock;
+                printit "sensor V after lock";
                 Activity_V_Occurred := true;
                 (* mode change? *)
                 rtunlock attActivityOccurred_lock;
+                printit "sensor V after unlock";
                 ()
             )
         else ()
