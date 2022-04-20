@@ -7,7 +7,7 @@ struct
     fun Pace_ON_A () = printit "Pace ON A"
     fun Pace_OFF_A () = printit "Pace OFF A"
     fun gettime () = get_ticks_since_boot ()
-    fun mstosec x = Time.toReal(Time.fromMilliseconds(IntInf.fromInt(x)));
+    fun mstosec x = Time.toReal(Time.fromMilliseconds(IntInf.fromInt(x))); (* seconds *)
 
 (*
     val Activity_A_Occurred = ref false
@@ -20,14 +20,15 @@ struct
     val lastVActivity_lock = 3
     val lastAActivity_lock = 4
 
-    val reactionTime = mstosec(30000)
-    val recoveryTime = mstosec(300000)
-    val Slop = mstosec(8)
-    val PVARP = mstosec(270)
-    val MSR = mstosec(500)
-    val PaceInterval = mstosec(1000)
-    val AVI = mstosec(150)
-    val PacingLength = mstosec(2)
+    (* rtmlton intinf buggy so avoid *)
+    val reactionTime = 30.0 (* mstosec(30000) *)
+    val recoveryTime = 300.0 (* mstosec(300000) *)
+    val Slop = 0.8 (* mstosec(8) *)
+    val PVARP = 0.270 (* mstosec(270) *)
+    val MSR = 0.5 (* mstosec(500) *)
+    val PaceInterval = 1.0 (* mstosec(1000) *)
+    val AVI = 0.150 (* mstosec(150) *)
+    val PacingLength = 0.015 (* mstosec(15)*)
 
     (* DDDR_Handler_Pace_A.java 
        Aperiodic. High priority.
@@ -38,13 +39,15 @@ struct
         val now = get_ticks_since_boot ();
         val interval = now - !lastAtriumActivityTime;
     in
-        if interval >= (PaceInterval-AVI) then (
+        if Real.>=(interval, Real.-(PaceInterval,AVI)) then (
             Pace_ON_A ();
-            Posix.Process.sleep (Time.fromReal PacingLength);
+            (* rtlinux sleep is unreliable so avoid *)
+            (*Posix.Process.sleep (Time.fromReal PacingLength);*)
+            ssleep(0, 15000);
             Pace_OFF_A ();
             rtlock attActivityOccurred_lock;
             Activity_V_Occurred := false;
-            lastAtriumActivityTime := get_ticks_since_boot ();
+            lastAtriumActivityTime := get_ticks_since_boot (); (* rtlinux seconds *)
             rtunlock attActivityOccurred_lock;
             ()
         )
@@ -63,7 +66,7 @@ struct
         interval := Real.-(get_ticks_since_boot(), !lastVentricleActivityTime);
         (*printit ("read sensor a. interval="^Real.toString(!interval));*)
 
-        if !interval > PVARP andalso !interval < Real.-(PaceInterval,AVI) andalso !Activity_A_Occurred = false then (
+        if Real.>(!interval , PVARP) andalso Real.<( !interval , Real.-(PaceInterval,AVI)) andalso !Activity_A_Occurred = false then (
             printit "sensor A check 1";
             if Real.>=(EcgCalc.ran1 (), 0.3) then (
                 printit "Intrinsic activity sensed in A";
@@ -76,7 +79,7 @@ struct
                 printit "Intrinsic A after unlock";
                 ()
             ) else ()
-        ) else if !interval >= Real.-(PaceInterval,AVI) andalso !Activity_A_Occurred = false then (
+        ) else if Real.>=(!interval , Real.-(PaceInterval,AVI)) andalso !Activity_A_Occurred = false then (
                 printit "sensor A check 2";
 
                 rtlock attActivityOccurred_lock;

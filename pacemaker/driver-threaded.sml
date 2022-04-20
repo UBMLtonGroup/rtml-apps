@@ -23,9 +23,10 @@ val all_stop = ref 0
  * the configured clock frequency:
  * CONFIGURE_MICROSECONDS_PER_TICK
  *)
-val runtime    =  5000 (* 1 ms *)
-val deadline   = 80000 (* 4 ms *)
-val period     = 80000 (* 8 ms *)
+val runtime      =  5000 (* 5 ms *)
+val runtime_pace = 18000 (* must exceed PacingLength *)
+val deadline     = 20000 (* 20 ms *)
+val period       = 20000 (* 20 ms *)
 
 val collectAtPeriodEnd = false
 
@@ -42,7 +43,11 @@ fun checkDeadline (cur : real, dl : int) =
       )
    end
 
-(* wavegen period 13000-14000 ms *)
+(* wavegen period 13000-14000 ms, note this is not a deadline scheduled
+ * task (no set_sched call) and so this will be, on rtlinux, at a lower
+ * priority than tasks that are deadline scheduled
+ * https://unix.stackexchange.com/questions/342725/can-sched-fifo-be-preempted-by-sched-deadline
+ *)
 
 fun thread0 (ln, pos, buf) = 
 let 
@@ -61,7 +66,7 @@ in
       schedule_yield false;
       rc := !rc + 1;
       printit2 ("Ecg: do it again: "^Int.toString(!rc)); 
-      if (!rc > 5) then (
+      if (!rc > 10) then (
          dump_instrument_stderr 0;
          dump_instrument_stderr 1;
          dump_instrument_stderr 2;
@@ -132,7 +137,7 @@ let
    val prev = ref (gettime ())
    val cur = ref (gettime ())
 
-   val _ = set_schedule (runtime, deadline, period, 2) (* runtime, deadline, period, allowedtopack *)
+   val _ = set_schedule (runtime_pace, deadline, period, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       (* rtlock ln; *)
@@ -158,7 +163,7 @@ let
 (*  The kernel requires that:
            sched_runtime <= sched_deadline <= sched_period *)
 
-   val _ = set_schedule (runtime, deadline, period, 2) (* runtime, deadline, period, allowedtopack *)
+   val _ = set_schedule (runtime_pace, deadline, period, 2) (* runtime, deadline, period, allowedtopack *)
 in
    while true do (
       (* rtlock ln; *)
