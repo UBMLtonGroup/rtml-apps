@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="common_realtime"/>
+	<classpathentry kind="src" path="java_memory"/>
+	<classpathentry kind="src" path="java_threads"/>
+	<classpathentry kind="src" path="rcd"/>
+	<classpathentry kind="src" path="rtsj_memory"/>
+	<classpathentry kind="src" path="rtsj_threads"/>
+	<classpathentry kind="src" path="utils"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

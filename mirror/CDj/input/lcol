@@ -1,0 +1,6 @@
+add	plane0	400*cos(t/2)+500	100	5	ord	ind
+add	plane1	400*cos(t/2)+510	100	5	ord	ind
+add	plane2	400*cos(t/2)+520	100	5	ord	ind
+add	plane40	400*sin(t/2)+500	100	5	ord	ind
+add	plane41	400*sin(t/2)+510	100	5	ord	ind
+add	plane42	400*sin(t/2)+520	100	5	ord	ind

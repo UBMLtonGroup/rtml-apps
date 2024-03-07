@@ -1,0 +1,2 @@
+add	sin	cos(t/10)*10+25		sin(t/10)*10+25	5	ord	ind
+add	cos	-cos(t/10)*10+25	sin(t/10)*10+25	5	ord	ind

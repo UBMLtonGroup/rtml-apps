@@ -1,0 +1,6 @@
+fivmr reflect log: Lheap/Main;/class$(Ljava/lang/String;)Ljava/lang/
+Class; used Limmortal/ImmortalEntry;
+fivmr reflect log: Ljava/lang/Class;/newInstance()Ljava/lang/Object;
+alloced Limmortal/ImmortalEntry;
+fivmr reflect log: Ljava/lang/Class;/newInstance()Ljava/lang/Object;
+dynamically called Limmortal/ImmortalEntry;/<init>()V
